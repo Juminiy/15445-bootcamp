@@ -28,6 +28,9 @@
 #include <mutex>
 // Includes the thread library header.
 #include <thread>
+#include <tuple>
+
+#include "../include/util.h"
 
 // Defining a global count variable, a mutex, and a condition variable to
 // be used by both threads.
@@ -44,7 +47,8 @@ std::condition_variable cv;
 void add_count_and_notify() {
   std::scoped_lock slk(m);
   count += 1;
-  if (count == 2) {
+  __time_sleep_sec(2);
+  if (count == 3) {
     cv.notify_one();
   }
 }
@@ -59,7 +63,7 @@ void add_count_and_notify() {
 // or copy-assignable.
 void waiter_thread() {
   std::unique_lock lk(m);
-  cv.wait(lk, []{return count == 2;});
+  cv.wait(lk, []{return count == 3;});
 
   std::cout << "Printing count: " << count << std::endl;
 }
@@ -70,11 +74,17 @@ void waiter_thread() {
 // both increments, along with the conditional acquisition in the waiter
 // thread, worked successfully.
 int main() {
+  auto timeStart = __time_now_();
+
   std::thread t1(add_count_and_notify);
   std::thread t2(add_count_and_notify);
-  std::thread t3(waiter_thread);
+  std::thread t3(add_count_and_notify);
+  std::thread t4(waiter_thread);
   t1.join();
   t2.join();
   t3.join();
+  t4.join();
+
+  std::cout << __time_tillnow_dur_ms_(timeStart)  << "ms" << '\n';
   return 0;
 }

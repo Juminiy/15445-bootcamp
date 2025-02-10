@@ -20,10 +20,12 @@
 // https://www.cs.cmu.edu/afs/cs/academic/class/15213-s23/www/lectures/25-sync-advanced.pdf
 
 // Includes std::cout (printing) for demo purposes.
+#include <chrono>
 #include <iostream>
 // Includes the mutex library header.
 #include <mutex>
 // Includes the shared mutex library header.
+#include <ratio>
 #include <shared_mutex>
 // Includes the thread library header.
 #include <thread>
@@ -39,7 +41,7 @@ std::shared_mutex m;
 // variable.
 void read_value() {
   std::shared_lock lk(m);
-  std::cout << "Reading value " + std::to_string(count) + "\n" << std::flush;
+  std::cout << std::this_thread::get_id() << " Reading value " + std::to_string(count) + "\n" << std::flush;
 }
 
 // This function uses a std::unique_lock (write lock equivalent) to gain
@@ -61,6 +63,15 @@ int main() {
   std::thread t4(read_value);
   std::thread t5(write_value);
   std::thread t6(read_value);
+
+  std::cout << "1 "<< t1.get_id() << "\n";
+  std::cout << "2 "<< t2.get_id() << "\n";
+  std::cout << "3 "<< t3.get_id() << "\n";
+  std::cout << "4 "<< t4.get_id() << "\n";
+  std::cout << "5 "<< t5.get_id() << "\n";
+  std::cout << "6 "<< t6.get_id() << "\n";
+
+  std::this_thread::sleep_for(std::chrono::seconds(2));
 
   t1.join();
   t2.join();
